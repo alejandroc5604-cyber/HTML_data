@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Commissioner:wght@100..900&family=Fontdiner+Swanky&family=Henny+Penny&display=swap');
+
+body {
+  font-family: "Commissioner", cursive;
+}
+.sidenav {
+  height: 100%;
+  width: 160px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #0e194d;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+.title{
+    font-family: "Cinzel Decorative", serif;
+}
+.TopLeftIcon {
+    color: aliceblue;
+    display: grid;
+    place-items: center;
+}
+
+.TopLeftIcon a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.TopLeftIcon h1 {
+    font-size: 4rem;
+    margin: -1px;
+}
+
+.PathToResource{
+    color:grey;
+    font-size: 18px;
+    padding-top: -1px;
+}
+.PathToResource a:visited{
+    color:grey;
+    font-size: 70%;
+    padding-top: 1%;
+}
+.sidenav a {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 20px;
+  color: #2b5835;
+  display: block;
+}
+
+.sidenav a:hover {
+  color: #cd2355;
+}
+
+.main {
+  margin-left: 160px; /* Same as the width of the sidenav */
+  font-size: 28px; /* Increased text to enable scrolling */
+  padding: 0px 10px;
+}
+
+.project_description {
+  font-size: 20px;
+}
+
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
