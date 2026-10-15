@@ -1,27 +1,25 @@
 
+import * as maplibregl from "https://unpkg.com/maplibre-gl@6.14.0/dist/maplibre-gl.mjs";
+
 // first fetch the database thing data
 const base_url = 'http://192.168.100.22:8000';
+let activeMap;
 async function fetch_databases() {
-
-    const FindDB = '/DB_FindDB'
+    const FindDB = '/DB_FindDB';
     try {
-    const find_db_response = await fetch(`${base_url}${FindDB}`);
+        const find_db_response = await fetch(`${base_url}${FindDB}`);
 
-    if (!find_db_response.ok) {
-        throw new Error(`at fetch_databaseFailed Connection: ${find_db_response.status}`);
+        if (!find_db_response.ok) {
+            throw new Error(`Failed Connection: ${find_db_response.status}`);
+        }
+
+        const response_data = await find_db_response.json();
+        console.log('At fetch_databases:', response_data);
+        return response_data;
+    } catch (error) {
+        console.error('Failed to fetch databases:', error.message);
+        throw error;
     }
-    
-    const data = await find_db_response.json();
-    console.log(`At fetch_databases:`, data);
-    return data
-  } catch (error) {
-    console.error('Failed to fetch data:', error.message);
-  };
-  // const cookie_value = encodeURIComponent(JSON.stringify(data));
-  
-  //document.cookie = `Found_DB=${cookie_value}; path=/;`;
-
-
 }
 async function fetch_database_data(database_name){
     //at this point, the user has selected the database they want, so then the hotspot should be loaded
@@ -39,7 +37,7 @@ async function fetch_database_data(database_name){
         }
 
         console.log("SUCCESFUL: ");
-        count = 0
+        var count = 0
         for (const found_trash of response_data.FoundData) {
             count ++;
         }
@@ -51,64 +49,78 @@ async function fetch_database_data(database_name){
     }
 };
 
-///////////////////////////////////////////////////////////////////////
-
-/* When the user clicks on the button,
-toggle between hiding and showing the dropdown content */
-function myFunction() {
-  document.getElementById("myDropdown").classList.toggle("show");
-}
-
-// Close the dropdown menu if the user clicks outside of it
-window.onclick = function(event) {
-  if (!event.target.matches('.dropbtn')) {
-    var dropdowns = document.getElementsByClassName("dropdown-content");
-    var i;
-    for (i = 0; i < dropdowns.length; i++) {
-      var openDropdown = dropdowns[i];
-      if (openDropdown.classList.contains('show')) {
-        openDropdown.classList.remove('show');
-      }
-    }
+async function SetupMap(database_filename) {
+  var data;
+  data = await fetch_database_data(database_filename);
+  if (activeMap) {
+    activeMap.remove();
   }
-} 
+
+  const map = new maplibregl.Map({
+      container: "map",
+      style: "https://demotiles.maplibre.org/style.json",
+      center: [36.8219, -1.2921],
+      zoom: 11
+  });
+  activeMap = map;
+
+  map.addControl(
+      new maplibregl.NavigationControl(),
+      "top-right"
+  );
+
+  // Add the markers
+  console.log("At setup map, we have: ", data)
+  for (const found_trash of data){
+    var latitude; 
+    var longitude;
+    var ConfidenceScore;
+    var type;
+
+    latitude = found_trash.latitude
+    longitude = found_trash.longitude
+    ConfidenceScore = found_trash.confidence_score
+    new maplibregl.Marker()
+        .setLngLat([longitude, latitude])
+        .setPopup(
+            new maplibregl.Popup()
+                .setText(`Confidence Score: ${ConfidenceScore}\n`)
+        )
+        .addTo(map);
+        break
+    }
 
 
+}
 
 
 async function populateSelectDatabaseDropdown() {
-  // we are going to use the  name (filename) structure
-  recv_data = await fetch_databases();
-  console.log(`At populateselectdatabase dropdown, we have this returned data`, recv_data)
-  if (recv_data == undefined){
-    console.log("At populateSelectDatabaseDropdown, no data has been return from fetch_databases");
-    return 0
-  };
-  data = recv_data;
-  // now we have the data, so then populate it
-  dropdown_div = document.getElementById('myDropdown');
-  // now go through each of the things one at the time, and add it
-for (const database_pair of data.Databases) {
-    const newAtag = document.createElement('a');
+  const response_data = await fetch_databases();
+  if (!Array.isArray(response_data.Databases)) {
+    throw new Error('Invalid database list response: Databases must be an array');
+  }
 
-    console.log(
-        "Database:",
-        database_pair.Database_Name,
-        database_pair.Database_filename
-    );
+  const dropdown = document.getElementById('myDropdown');
+  if (!dropdown) {
+    throw new Error('Database dropdown element was not found');
+  }
 
-    newAtag.textContent =
-        `${database_pair.Database_Name} (${database_pair.Database_filename})`;
-
-      newAtag.addEventListener('click', (event) => {
+  for (const database of response_data.Databases) {
+    const databaseLink = document.createElement('a');
+    databaseLink.href = '#';
+    databaseLink.textContent =
+      `${database.Database_Name} (${database.Database_filename})`;
+    databaseLink.addEventListener('click', async (event) => {
         event.preventDefault();
-        
-      })
-
-    dropdown_div.append(newAtag);
-    // :)
-}
-
+        dropdown.classList.remove('show');
+        try {
+          await SetupMap(database.Database_filename);
+        } catch (error) {
+          console.error(`Failed to load database "${database.Database_Name}":`, error.message);
+        }
+    });
+    dropdown.append(databaseLink);
+  }
 }
 function getCookie(name) {
   const cookies = document.cookie.split('; ');
@@ -125,6 +137,21 @@ function getCookie(name) {
 //fetch_databases();
 
 document.addEventListener('DOMContentLoaded', () => {
-  fetch_database_data('TVlORVdUQUJMRQ==_e0c6b7aa-f4a8-4819-aa36-b1bc8c29b051');
-  populateSelectDatabaseDropdown();
+  const dropdown = document.getElementById('myDropdown');
+  const dropdownButton = document.getElementById('databaseDropdownButton');
+
+  dropdownButton.addEventListener('click', () => {
+    dropdown.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.dropdown')) {
+      dropdown.classList.remove('show');
+    }
+  });
+
+  SetupMap('TVlORVdUQUJMRQ==_e0c6b7aa-f4a8-4819-aa36-b1bc8c29b051')
+    .catch((error) => console.error('Failed to load the initial database:', error.message));
+  populateSelectDatabaseDropdown()
+    .catch((error) => console.error('Failed to populate the database dropdown:', error.message));
 });

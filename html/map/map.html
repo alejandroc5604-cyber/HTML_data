@@ -1,11 +1,7 @@
 <!DOCTYPE html>
 <html>
-<script src="map.js"></script>
-<style>
-    @import url("index.css");
-</style>
-
 <head>
+    <script type="module" src="map.js"></script>
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
@@ -37,13 +33,13 @@
             <p>Here is the map with data from EcoSight</p>
         </div>
         <!-- this is going to separate vertically, with a small sidebar to select the database-->
-         <div>
+         <div class="map-view-division", id="map-division">
             <div> 
                 <div class="map-view" id="map"></div>
             </div>
             <div>
                 <div class="dropdown">
-                <button onclick="myFunction()" class="dropbtn">Select Database...</button>
+                <button id="databaseDropdownButton" type="button" class="dropbtn">Select Database...</button>
                 <div id="myDropdown" class="dropdown-content">
                 </div>
                 </div>

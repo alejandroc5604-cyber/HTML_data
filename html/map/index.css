@@ -102,11 +102,24 @@ body {
   padding: 12px 16px;
   text-decoration: none;
   display: block;
+  font-size: 12px;
 }
 
 /* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: #ddd;}
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+#map {
+  width: 100%;
+  max-width: 900px;
+  height: min(60vh, 500px);
+}
 
+.map-division{
+  max-height: 50vh;
+  padding-bottom: 10px;
+  padding-top:10px;
+}
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 .show {display:block;}
 
