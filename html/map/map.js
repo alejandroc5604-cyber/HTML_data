@@ -8,6 +8,11 @@ const dropdownLabel = document.getElementById("DatabasesDropdownLabel");
 const loadButton = document.getElementById("LoadDatabaseButton");
 
 let selectedDatabase = null;
+let map = null;
+
+// ------------------------------
+// Database dropdown
+// ------------------------------
 
 function setDropdownOpen(isOpen) {
     dropdownMenu.classList.toggle("show", isOpen);
@@ -34,11 +39,15 @@ function populateDatabaseDropdown(databaseList) {
         return;
     }
 
+    let validDatabaseCount = 0;
+
     databaseList.forEach(database => {
         if (!database.Database_Name || !database.Database_filename) {
             console.warn("Skipping invalid database entry:", database);
             return;
         }
+
+        validDatabaseCount++;
 
         const option = document.createElement("button");
         option.type = "button";
@@ -48,13 +57,15 @@ function populateDatabaseDropdown(databaseList) {
         option.addEventListener("click", () => {
             selectedDatabase = database;
 
-            dropdownLabel.textContent = `${database.Database_Name} ▼`;
+            dropdownLabel.textContent =
+                `${database.Database_Name} ▼`;
 
             dropdownMenu.querySelectorAll(".DatabaseOption")
                 .forEach(item => item.classList.remove("selected"));
 
             option.classList.add("selected");
             loadButton.disabled = false;
+
             setDropdownOpen(false);
 
             console.log("Selected database:", selectedDatabase);
@@ -62,6 +73,17 @@ function populateDatabaseDropdown(databaseList) {
 
         dropdownMenu.appendChild(option);
     });
+
+    if (validDatabaseCount === 0) {
+        const empty = document.createElement("div");
+        empty.className = "DatabaseOption";
+        empty.textContent = "No valid databases found";
+        dropdownMenu.appendChild(empty);
+
+        selectedDatabase = null;
+        dropdownLabel.textContent = "Databases ▼";
+        loadButton.disabled = true;
+    }
 }
 
 async function fetchDatabases() {
@@ -77,17 +99,22 @@ async function fetchDatabases() {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status} ${response.statusText}`);
+            throw new Error(
+                `HTTP ${response.status} ${response.statusText}`
+            );
         }
 
         const data = await response.json();
 
         if (!Array.isArray(data.Databases)) {
-            throw new Error("The API response does not contain a Databases array.");
+            throw new Error(
+                "The API response does not contain a Databases array."
+            );
         }
 
         console.log("Databases received:", data.Databases);
         populateDatabaseDropdown(data.Databases);
+
     } catch (error) {
         console.error("Could not load databases:", error);
 
@@ -133,43 +160,93 @@ loadButton.addEventListener("click", async () => {
             filename: selectedDatabase.Database_filename
         });
 
+
+    } catch (error) {
+        console.error("Could not load selected database:", error);
     } finally {
         loadButton.disabled = !selectedDatabase;
     }
 });
 
-// Initialize the map independently of the database request.
-document.addEventListener("DOMContentLoaded", () => {
-    if (typeof L === "undefined" || typeof pmtiles === "undefined") {
-        console.error("Leaflet or the PMTiles library failed to load.");
+document.addEventListener("DOMContentLoaded", async () => {
+    if (typeof maplibregl === "undefined") {
+        console.error("MapLibre GL JS failed to load.");
         return;
     }
 
-    const map = L.map("map");
+    if (typeof pmtiles === "undefined") {
+        console.error("The PMTiles library failed to load.");
+        return;
+    }
 
-    const p = new pmtiles.PMTiles(PMTILES_URL);
+    try {
+        // Register PMTiles as a source protocol for MapLibre.
+        const protocol = new pmtiles.Protocol();
+        maplibregl.addProtocol("pmtiles", protocol.tile);
 
-    p.getHeader()
-        .then(header => {
-            const layer = pmtiles.leafletRasterLayer(p, {
-                maxNativeZoom: header.maxZoom
-            });
+        // Create the map with an initial center and zoom.
+        map = new maplibregl.Map({
+            container: "map",
 
-            layer.addTo(map);
-            map.fitBounds([
-                [header.minLat, header.minLon],
-                [header.maxLat, header.maxLon]
-            ]);
+            style: {
+                version: 8,
+                sources: {
+                    kenya: {
+                        type: "vector",
+                        url: `pmtiles://${location.origin}${PMTILES_URL}`
+                    }
+                },
+                layers: []
+            },
 
-            map.fitBounds([
-                [header.minLat, header.minLon],
-                [header.maxLat, header.maxLon]
-            ]);
-        })
-        .catch(error => {
-            console.error("Could not load the PMTiles map:", error);
+            center: [37.9062, -0.0236],
+            zoom: 5
         });
+
+        map.addControl(
+            new maplibregl.NavigationControl(),
+            "top-right"
+        );
+
+        map.on("load", async () => {
+            console.log("MapLibre initialized successfully.");
+
+            try {
+                const archive = new pmtiles.PMTiles(
+                    `${location.origin}${PMTILES_URL}`
+                );
+
+                const header = await archive.getHeader();
+                const metadata = await archive.getMetadata();
+
+                console.log("PMTiles header:", header);
+                console.log("PMTiles metadata:", metadata);
+
+                if (metadata.vector_layers) {
+                    console.log(
+                        "Available vector layers:",
+                        metadata.vector_layers
+                    );
+                }
+
+            } catch (error) {
+                console.error(
+                    "Could not read PMTiles metadata:",
+                    error
+                );
+            }
+        });
+
+        map.on("error", event => {
+            console.error(
+                "MapLibre error:",
+                event.error || event
+            );
+        });
+
+    } catch (error) {
+        console.error("Could not initialize the map:", error);
+    }
 });
 
-// Fetching databases does not need to block map initialization.
 fetchDatabases();
