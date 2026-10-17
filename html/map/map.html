@@ -1,52 +1,83 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <script type="module" src="map.js"></script>
-    <link rel="stylesheet" href="index.css">
-</head>
-<body>
 
-<div class="sidenav" id="sidenav">
-    
-    <div class="TopLeftIcon">
-        <a href="/welcome/index.html"><h2>EcoSight</h2></a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSight Map</title>
+
+    <link rel="stylesheet" href="./index.css">
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js"></script>
+    <script src="./map.js" defer></script>
+</head>
+
+<body>
+    <div class="sidenav" id="sidenav">
+        <div class="TopLeftIcon">
+            <a href="/welcome/index.html"><h2>EcoSight</h2></a>
+        </div>
+
+        <hr>
+
+        <a href="/about/about.html">About</a>
+        <a href="/map/map.html">Map</a>
+        <a href="/data/data.html">Data</a>
     </div>
 
-    <hr>
-
-    <a href="/about/about.html">About</a>
-    <a href="/map/map.html">Map</a>
-    <a href="/data/data.html">Data</a>
-</div>
-
-    <div class="main">
+    <main class="main">
         <div class="PathToResource">
             <p>
-                <a href="/welcome/index.html">Home </a>
-                <a href="/map/map.html">   Map</a>
+                <a href="/welcome/index.html">Home</a>
+                /
+                <a href="/map/map.html">Map</a>
             </p>
         </div>
+
         <div class="title">
             <h3>EcoSight</h3>
         </div>
+
         <div class="project_description">
-            <p>Here is the map with data from EcoSight</p>
+            <p>Here is the map with data from EcoSight.</p>
         </div>
-        <!-- this is going to separate vertically, with a small sidebar to select the database-->
-         <div class="map-view-division", id="map-division">
-            <div> 
-                <div class="map-view" id="map"></div>
-            </div>
-            <div>
-                <div class="dropdown">
-                <button id="databaseDropdownButton" type="button" class="dropbtn">Select Database...</button>
-                <div id="myDropdown" class="dropdown-content">
+
+        <div class="map-view-division" id="map-division">
+            <div class="map-view" id="map"></div>
+
+            <div class="LoadDatabaseToolbar">
+                <div class="dropdown-container">
+                    <button
+                        type="button"
+                        id="DatabasesDropdownButton"
+                        class="DatabasesDropdown-Button"
+                        aria-expanded="false"
+                        aria-controls="DatabaseDropdownMenu">
+                        <span id="DatabasesDropdownLabel">Databases ▼</span>
+                    </button>
+
+                    <div
+                        id="DatabaseDropdownMenu"
+                        class="DatabaseDropdownMenu">
+                        <div class="menu-heading">Databases</div>
+                    </div>
                 </div>
-                </div>
+
+                <button
+                    type="button"
+                    id="LoadDatabaseButton"
+                    class="LoadDatabase-Button"
+                    disabled>
+                    Load Database
+                </button>
             </div>
         </div>
-        
-    </div>
-    
+    </main>
 </body>
-</html> 
+</html>
