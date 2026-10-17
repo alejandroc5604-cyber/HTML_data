@@ -10,10 +10,6 @@ const loadButton = document.getElementById("LoadDatabaseButton");
 let selectedDatabase = null;
 let map = null;
 
-// ------------------------------
-// Database dropdown
-// ------------------------------
-
 function setDropdownOpen(isOpen) {
     dropdownMenu.classList.toggle("show", isOpen);
     dropdownButton.setAttribute("aria-expanded", String(isOpen));
@@ -39,7 +35,7 @@ function populateDatabaseDropdown(databaseList) {
         return;
     }
 
-    let validDatabaseCount = 0;
+    let validCount = 0;
 
     databaseList.forEach(database => {
         if (!database.Database_Name || !database.Database_filename) {
@@ -47,7 +43,7 @@ function populateDatabaseDropdown(databaseList) {
             return;
         }
 
-        validDatabaseCount++;
+        validCount++;
 
         const option = document.createElement("button");
         option.type = "button";
@@ -56,16 +52,13 @@ function populateDatabaseDropdown(databaseList) {
 
         option.addEventListener("click", () => {
             selectedDatabase = database;
-
-            dropdownLabel.textContent =
-                `${database.Database_Name} ▼`;
+            dropdownLabel.textContent = `${database.Database_Name} ▼`;
 
             dropdownMenu.querySelectorAll(".DatabaseOption")
                 .forEach(item => item.classList.remove("selected"));
 
             option.classList.add("selected");
             loadButton.disabled = false;
-
             setDropdownOpen(false);
 
             console.log("Selected database:", selectedDatabase);
@@ -74,7 +67,7 @@ function populateDatabaseDropdown(databaseList) {
         dropdownMenu.appendChild(option);
     });
 
-    if (validDatabaseCount === 0) {
+    if (validCount === 0) {
         const empty = document.createElement("div");
         empty.className = "DatabaseOption";
         empty.textContent = "No valid databases found";
@@ -99,17 +92,13 @@ async function fetchDatabases() {
         });
 
         if (!response.ok) {
-            throw new Error(
-                `HTTP ${response.status} ${response.statusText}`
-            );
+            throw new Error(`HTTP ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
 
         if (!Array.isArray(data.Databases)) {
-            throw new Error(
-                "The API response does not contain a Databases array."
-            );
+            throw new Error("The API response does not contain a Databases array.");
         }
 
         console.log("Databases received:", data.Databases);
@@ -155,11 +144,10 @@ loadButton.addEventListener("click", async () => {
     loadButton.disabled = true;
 
     try {
-        console.log("Requesting selected database:", {
+        console.log("Selected database:", {
             name: selectedDatabase.Database_Name,
             filename: selectedDatabase.Database_filename
         });
-
 
     } catch (error) {
         console.error("Could not load selected database:", error);
@@ -170,21 +158,21 @@ loadButton.addEventListener("click", async () => {
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (typeof maplibregl === "undefined") {
-        console.error("MapLibre GL JS failed to load.");
+        console.error("maplibre-gl.js failed to load.");
         return;
     }
 
     if (typeof pmtiles === "undefined") {
-        console.error("The PMTiles library failed to load.");
+        console.error("pmtiles.js failed to load.");
         return;
     }
 
     try {
-        // Register PMTiles as a source protocol for MapLibre.
         const protocol = new pmtiles.Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
 
-        // Create the map with an initial center and zoom.
+        const archiveUrl = `${location.origin}${PMTILES_URL}`;
+
         map = new maplibregl.Map({
             container: "map",
 
@@ -193,7 +181,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 sources: {
                     kenya: {
                         type: "vector",
-                        url: `pmtiles://${location.origin}${PMTILES_URL}`
+                        url: `pmtiles://${archiveUrl}`
                     }
                 },
                 layers: []
@@ -203,19 +191,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             zoom: 5
         });
 
-        map.addControl(
-            new maplibregl.NavigationControl(),
-            "top-right"
-        );
+        map.addControl(new maplibregl.NavigationControl(), "top-right");
 
         map.on("load", async () => {
             console.log("MapLibre initialized successfully.");
 
             try {
-                const archive = new pmtiles.PMTiles(
-                    `${location.origin}${PMTILES_URL}`
-                );
-
+                const archive = new pmtiles.PMTiles(archiveUrl);
                 const header = await archive.getHeader();
                 const metadata = await archive.getMetadata();
 
@@ -223,25 +205,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 console.log("PMTiles metadata:", metadata);
 
                 if (metadata.vector_layers) {
-                    console.log(
-                        "Available vector layers:",
-                        metadata.vector_layers
-                    );
+                    console.log("Available vector layers:", metadata.vector_layers);
                 }
-
             } catch (error) {
-                console.error(
-                    "Could not read PMTiles metadata:",
-                    error
-                );
+                console.error("Could not read PMTiles metadata:", error);
             }
         });
 
         map.on("error", event => {
-            console.error(
-                "MapLibre error:",
-                event.error || event
-            );
+            console.error("MapLibre error:", event.error || event);
         });
 
     } catch (error) {
