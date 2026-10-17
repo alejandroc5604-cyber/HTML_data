@@ -193,24 +193,139 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         map.addControl(new maplibregl.NavigationControl(), "top-right");
 
+
         map.on("load", async () => {
             console.log("MapLibre initialized successfully.");
 
             try {
-                const archive = new pmtiles.PMTiles(archiveUrl);
-                const header = await archive.getHeader();
+                const archive = new pmtiles.PMTiles(
+                    `${location.origin}${PMTILES_URL}`
+                );
+
                 const metadata = await archive.getMetadata();
 
-                console.log("PMTiles header:", header);
                 console.log("PMTiles metadata:", metadata);
 
-                if (metadata.vector_layers) {
-                    console.log("Available vector layers:", metadata.vector_layers);
+                const vectorLayers = metadata.vector_layers || [];
+                const availableLayers = new Set(
+                    vectorLayers.map(layer => layer.id)
+                );
+
+                console.log(
+                    "Available vector layer names:",
+                    [...availableLayers]
+                );
+
+                map.addLayer({
+                    id: "map-background",
+                    type: "background",
+                    paint: {
+                        "background-color": "#f2efe9"
+                    }
+                });
+
+                function addLayerIfAvailable(layerId, definition) {
+                    if (!availableLayers.has(layerId)) {
+                        console.warn(
+                            `Shortbread layer not found: ${layerId}`
+                        );
+                        return;
+                    }
+
+                    map.addLayer({
+                        ...definition,
+                        source: "kenya",
+                        "source-layer": layerId
+                    });
                 }
+
+                addLayerIfAvailable("ocean", {
+                    id: "ocean",
+                    type: "fill",
+                    paint: {
+                        "fill-color": "#a9d5e8"
+                    }
+                });
+
+                addLayerIfAvailable("water_polygons", {
+                    id: "water-polygons",
+                    type: "fill",
+                    paint: {
+                        "fill-color": "#a9d5e8"
+                    }
+                });
+
+                addLayerIfAvailable("water_lines", {
+                    id: "water-lines",
+                    type: "line",
+                    paint: {
+                        "line-color": "#8bc5df",
+                        "line-width": 1.2
+                    }
+                });
+
+                addLayerIfAvailable("land", {
+                    id: "land",
+                    type: "fill",
+                    paint: {
+                        "fill-color": "#e7e5d8",
+                        "fill-opacity": 0.65
+                    }
+                });
+
+                addLayerIfAvailable("buildings", {
+                    id: "buildings",
+                    type: "fill",
+                    minzoom: 13,
+                    paint: {
+                        "fill-color": "#d0c8bb",
+                        "fill-outline-color": "#b9b0a4"
+                    }
+                });
+
+                addLayerIfAvailable("boundaries", {
+                    id: "boundaries",
+                    type: "line",
+                    paint: {
+                        "line-color": "#a58a9d",
+                        "line-width": 1
+                    }
+                });
+
+                addLayerIfAvailable("streets", {
+                    id: "streets",
+                    type: "line",
+                    paint: {
+                        "line-color": [
+                            "match",
+                            ["get", "kind"],
+                            "motorway", "#d87570",
+                            "trunk", "#e7ad70",
+                            "primary", "#e7ad70",
+                            "secondary", "#f2d7a1",
+                            "#ffffff"
+                        ],
+                        "line-width": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            5, 0.4,
+                            10, 1.2,
+                            15, 4
+                        ]
+                    }
+                });
+
+                console.log("Available Shortbread layers styled.");
+
             } catch (error) {
-                console.error("Could not read PMTiles metadata:", error);
+                console.error(
+                    "Could not load or style the PMTiles archive:",
+                    error
+                );
             }
         });
+
 
         map.on("error", event => {
             console.error("MapLibre error:", event.error || event);
