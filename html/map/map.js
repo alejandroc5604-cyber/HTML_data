@@ -156,6 +156,10 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             layer.addTo(map);
+            map.fitBounds([
+                [header.minLat, header.minLon],
+                [header.maxLat, header.maxLon]
+            ]);
 
             map.fitBounds([
                 [header.minLat, header.minLon],
