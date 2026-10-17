@@ -1,6 +1,6 @@
 
 const API_BASE_URL = "https://fidgety-zeppelin-finally.ngrok-free.dev/api";
-const PMTILES_URL = "/maps/kenya.pmtiles";
+const PMTILES_URL = "/pmtiles_map/kenya.pmtiles";
 
 const dropdownButton = document.getElementById("DatabasesDropdownButton");
 const dropdownMenu = document.getElementById("DatabaseDropdownMenu");
