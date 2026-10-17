@@ -4,21 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>EcoSight Map</title>
 
     <link rel="stylesheet" href="./index.css">
 
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css"
+    >
 
+    <script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
 
-<script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js"></script>
+    <script src="https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js"></script>
+
     <script src="./map.js" defer></script>
 </head>
 
 <body>
     <div class="sidenav" id="sidenav">
         <div class="TopLeftIcon">
-            <a href="/welcome/index.html"><h2>EcoSight</h2></a>
+            <a href="/welcome/index.html">
+                <h2>EcoSight</h2>
+            </a>
         </div>
 
         <hr>
@@ -55,13 +63,17 @@
                         id="DatabasesDropdownButton"
                         class="DatabasesDropdown-Button"
                         aria-expanded="false"
-                        aria-controls="DatabaseDropdownMenu">
-                        <span id="DatabasesDropdownLabel">Databases ▼</span>
+                        aria-controls="DatabaseDropdownMenu"
+                    >
+                        <span id="DatabasesDropdownLabel">
+                            Databases ▼
+                        </span>
                     </button>
 
                     <div
                         id="DatabaseDropdownMenu"
-                        class="DatabaseDropdownMenu">
+                        class="DatabaseDropdownMenu"
+                    >
                         <div class="menu-heading">Databases</div>
                     </div>
                 </div>
@@ -70,7 +82,8 @@
                     type="button"
                     id="LoadDatabaseButton"
                     class="LoadDatabase-Button"
-                    disabled>
+                    disabled
+                >
                     Load Database
                 </button>
             </div>

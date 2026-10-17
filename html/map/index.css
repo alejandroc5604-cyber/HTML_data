@@ -11,6 +11,7 @@ body {
     font-family: "Commissioner", Arial, sans-serif;
 }
 
+/* Sidebar navigation */
 .sidenav {
     height: 100vh;
     width: 160px;
@@ -20,6 +21,7 @@ body {
     left: 0;
     background-color: #0e194d;
     overflow-x: hidden;
+    overflow-y: auto;
     padding-top: 20px;
 }
 
@@ -45,28 +47,48 @@ body {
     color: inherit;
 }
 
+/* Main content */
 .main {
     margin-left: 160px;
     padding: 0 10px;
     min-width: 0;
 }
 
+.PathToResource,
+.title,
+.project_description {
+    max-width: 100%;
+}
+
+/* Map and toolbar layout */
 .map-view-division {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 12px;
     width: 100%;
+    min-width: 0;
 }
 
+/* MapLibre map container */
 #map {
+    position: relative;
     width: 100%;
     height: 50vh;
     min-height: 300px;
+    overflow: hidden;
     border-radius: 6px;
     background: #e2e8f0;
 }
 
+/* Keep MapLibre controls above the map canvas */
+#map .maplibregl-ctrl-top-right {
+    z-index: 10;
+}
+
+/* Database toolbar */
 .LoadDatabaseToolbar {
+    position: relative;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -76,8 +98,10 @@ body {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 6px;
+    background: #ffffff;
 }
 
+/* Database dropdown */
 .dropdown-container {
     position: relative;
     display: inline-block;
@@ -91,8 +115,9 @@ body {
     min-width: 220px;
     max-width: min(300px, 80vw);
     max-height: 300px;
+    overflow-x: hidden;
     overflow-y: auto;
-    background: white;
+    background: #ffffff;
     border: 1px solid #ccc;
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -115,7 +140,7 @@ body {
     width: 100%;
     padding: 10px;
     border: none;
-    background: white;
+    background: #ffffff;
     color: #172033;
     text-align: left;
     font-size: 14px;
@@ -130,6 +155,7 @@ body {
     background: #dbe5ff;
 }
 
+/* Toolbar buttons */
 .LoadDatabase-Button,
 .DatabasesDropdown-Button {
     display: inline-flex;
@@ -138,7 +164,7 @@ body {
     gap: 12px;
     padding: 9px 13px;
     background-color: #4563bd;
-    color: #fff;
+    color: #ffffff;
     border: none;
     border-radius: 6px;
     font-family: Arial, sans-serif;
@@ -157,6 +183,16 @@ body {
     cursor: not-allowed;
 }
 
+/* Keyboard accessibility */
+.LoadDatabase-Button:focus-visible,
+.DatabasesDropdown-Button:focus-visible,
+.DatabaseOption:focus-visible,
+.sidenav a:focus-visible {
+    outline: 2px solid #cd2355;
+    outline-offset: 2px;
+}
+
+/* Responsive layout */
 @media (max-width: 700px) {
     body {
         padding: 16px;
@@ -166,12 +202,58 @@ body {
         width: 120px;
     }
 
+    .sidenav a {
+        font-size: 16px;
+        padding-left: 12px;
+    }
+
     .main {
         margin-left: 120px;
+        padding: 0 6px;
     }
 
     #map {
         height: 55vh;
         min-height: 250px;
+    }
+
+    .LoadDatabaseToolbar {
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    body {
+        padding: 10px;
+    }
+
+    .sidenav {
+        width: 95px;
+    }
+
+    .sidenav a {
+        font-size: 14px;
+        padding-left: 10px;
+    }
+
+    .main {
+        margin-left: 95px;
+        padding: 0 4px;
+    }
+
+    #map {
+        height: 50vh;
+        min-height: 220px;
+    }
+
+    .LoadDatabaseToolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .dropdown-container,
+    .DatabasesDropdown-Button,
+    .LoadDatabase-Button {
+        width: 100%;
     }
 }
