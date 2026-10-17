@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Commissioner:wght@100..900&family=Fontdiner+Swanky&family=Henny+Penny&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Schoolbell&display=swap');
 
 body {
   font-family: "Commissioner", cursive;
@@ -67,6 +68,22 @@ color: #2b5835;
 
 .project_description {
   font-size: 20px;
+}
+
+.open-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 9px 13px;
+    background-color: #4563bd;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
 
