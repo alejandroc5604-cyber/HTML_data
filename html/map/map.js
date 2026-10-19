@@ -15,7 +15,14 @@ const hotspots = {
     features: [
         {
             type: "Feature",
-            properties: { intensity: 1.0 },
+            properties: {
+                location: "Nairobi",
+                wasteType: "Plastic",
+                modelConfidence: "12.34",
+                Source: "RaspberryPi5-4jf",
+                sampleReports: 24,
+                intensity: 1.0
+            },
             geometry: {
                 type: "Point",
                 coordinates: [36.8219, -1.2921]
@@ -23,7 +30,14 @@ const hotspots = {
         },
         {
             type: "Feature",
-            properties: { intensity: 0.7 },
+            properties: {
+                location: "Mombasa",
+                wasteType: "Mixed waste",
+                modelConfidence: "12.34",
+                Source: "RaspberryPi5-4jf",
+                sampleReports: 16,
+                intensity: 0.7
+            },
             geometry: {
                 type: "Point",
                 coordinates: [39.6682, -4.0435]
@@ -31,7 +45,14 @@ const hotspots = {
         },
         {
             type: "Feature",
-            properties: { intensity: 0.5 },
+            properties: {
+                location: "Kisumu",
+                wasteType: "Organic waste",
+                modelConfidence: "12.34",
+                Source: "RaspberryPi5-4jf",
+                sampleReports: 9,
+                intensity: 0.5
+            },
             geometry: {
                 type: "Point",
                 coordinates: [34.7617, -0.0917]
@@ -407,6 +428,68 @@ document.addEventListener("DOMContentLoaded", async () => {
                             1, "#ff0000"
                         ]
                     }
+                });
+
+                map.addLayer({
+                    id: "hotspot-points",
+                    type: "circle",
+                    source: "hotspots",
+                    paint: {
+                        "circle-radius": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            5, 5,
+                            10, 9
+                        ],
+                        "circle-color": "#c2410c",
+                        "circle-stroke-color": "#ffffff",
+                        "circle-stroke-width": 2
+                    }
+                });
+
+                const hotspotPopup = new maplibregl.Popup({
+                    closeButton: false,
+                    closeOnClick: false,
+                    offset: 12
+                });
+
+                function showHotspotPopup(event) {
+                    const feature = event.features && event.features[0];
+                    if (!feature) {
+                        return;
+                    }
+
+                    const properties = feature.properties || {};
+                    const content = document.createElement("div");
+                    const title = document.createElement("strong");
+                    title.textContent = properties.location || "Waste hotspot";
+                    content.appendChild(title);
+
+                    const wasteType = document.createElement("p");
+                    wasteType.textContent = `Waste type: ${properties.wasteType || "Unknown"}`;
+                    content.appendChild(wasteType);
+
+                    const reports = document.createElement("p");
+                    reports.textContent = `Sample reports: ${properties.sampleReports ?? "N/A"}`;
+                    content.appendChild(reports);
+
+                    hotspotPopup
+                        .setLngLat(feature.geometry.coordinates.slice())
+                        .setDOMContent(content)
+                        .addTo(map);
+                }
+
+                map.on("mouseenter", "hotspot-points", event => {
+                    map.getCanvas().style.cursor = "pointer";
+                    showHotspotPopup(event);
+                });
+
+                map.on("mousemove", "hotspot-points", showHotspotPopup);
+
+                map.on("mouseleave", "hotspot-points", () => {
+                    map.getCanvas().style.cursor = "";
+                    hotspotPopup.remove();
                 });
 
                 console.log("Available Shortbread layers styled.");
