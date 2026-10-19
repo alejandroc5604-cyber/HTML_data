@@ -21,7 +21,8 @@ const hotspots = {
                 modelConfidence: "12.34",
                 Source: "RaspberryPi5-4jf",
                 sampleReports: 24,
-                intensity: 1.0
+                intensity: 1.0,
+                itemID: "d551e949-d18f-4e67-ac95-44109d678164"
             },
             geometry: {
                 type: "Point",
@@ -36,7 +37,8 @@ const hotspots = {
                 modelConfidence: "12.34",
                 Source: "RaspberryPi5-4jf",
                 sampleReports: 16,
-                intensity: 0.7
+                intensity: 0.7,
+                itemID: "1ec88b05-d3bd-426e-9d45-2ab43dd53107"
             },
             geometry: {
                 type: "Point",
@@ -51,7 +53,8 @@ const hotspots = {
                 modelConfidence: "12.34",
                 Source: "RaspberryPi5-4jf",
                 sampleReports: 9,
-                intensity: 0.5
+                intensity: 0.5,
+                itemID: "1ec98b05-d3bd-426e-9d45-2ab43dd53107"
             },
             geometry: {
                 type: "Point",
@@ -473,6 +476,21 @@ document.addEventListener("DOMContentLoaded", async () => {
                     const reports = document.createElement("p");
                     reports.textContent = `Sample reports: ${properties.sampleReports ?? "N/A"}`;
                     content.appendChild(reports);
+
+                    const source = document.createElement("p");
+                    source.textContent = `Found by Source ${properties.Source ?? "N/A"}`;
+                    content.appendChild(source);
+
+                    const confidence_score = document.createElement("p");
+                    confidence_score.textContent = `Source model had a confidence of ${properties.modelConfidence ?? "N/A"}`;
+                    content.appendChild(source);
+
+                    const image = document.createElement("img");
+                    image.src = "trash.jpg";
+                    image.alt = "Trash image";
+                    image.style.maxWidth = "500";
+                    content.appendChild(image);
+
 
                     hotspotPopup
                         .setLngLat(feature.geometry.coordinates.slice())
