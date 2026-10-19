@@ -10,10 +10,40 @@ const loadButton = document.getElementById("LoadDatabaseButton");
 let selectedDatabase = null;
 let map = null;
 
+const hotspots = {
+    type: "FeatureCollection",
+    features: [
+        {
+            type: "Feature",
+            properties: { intensity: 1.0 },
+            geometry: {
+                type: "Point",
+                coordinates: [36.8219, -1.2921]
+            }
+        },
+        {
+            type: "Feature",
+            properties: { intensity: 0.7 },
+            geometry: {
+                type: "Point",
+                coordinates: [39.6682, -4.0435]
+            }
+        },
+        {
+            type: "Feature",
+            properties: { intensity: 0.5 },
+            geometry: {
+                type: "Point",
+                coordinates: [34.7617, -0.0917]
+            }
+        }
+    ]
+};
 function setDropdownOpen(isOpen) {
     dropdownMenu.classList.toggle("show", isOpen);
     dropdownButton.setAttribute("aria-expanded", String(isOpen));
 }
+
 
 function populateDatabaseDropdown(databaseList) {
     dropdownMenu.replaceChildren();
@@ -237,6 +267,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                         "background-color": "#f2efe9"
                     }
                 });
+                map.addSource("hotspots", {
+                    type: "geojson",
+                    data: hotspots
+                });
 
                 function addLayerIfAvailable(layerId, definition) {
                     if (!availableLayers.has(layerId)) {
@@ -326,6 +360,51 @@ document.addEventListener("DOMContentLoaded", async () => {
                             5, 0.4,
                             10, 1.2,
                             15, 4
+                        ]
+                    }
+                });
+                map.addLayer({
+                    id: "hotspot-heatmap",
+                    type: "heatmap",
+                    source: "hotspots",
+
+                    paint: {
+                        "heatmap-weight": [
+                            "interpolate",
+                            ["linear"],
+                            ["get", "intensity"],
+                            0, 0,
+                            1, 1
+                        ],
+
+                        "heatmap-intensity": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            5, 1,
+                            10, 3
+                        ],
+
+                        "heatmap-radius": [
+                            "interpolate",
+                            ["linear"],
+                            ["zoom"],
+                            5, 15,
+                            10, 35
+                        ],
+
+                        "heatmap-opacity": 0.8,
+
+                        "heatmap-color": [
+                            "interpolate",
+                            ["linear"],
+                            ["heatmap-density"],
+                            0, "rgba(0, 0, 255, 0)",
+                            0.2, "#00ffff",
+                            0.4, "#00ff00",
+                            0.6, "#ffff00",
+                            0.8, "#ff8000",
+                            1, "#ff0000"
                         ]
                     }
                 });
