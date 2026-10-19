@@ -10,7 +10,7 @@ const loadButton = document.getElementById("LoadDatabaseButton");
 let selectedDatabase = null;
 let map = null;
 
-const hotspots = {
+let hotspots = {
     type: "FeatureCollection",
     features: [
         {
@@ -22,7 +22,8 @@ const hotspots = {
                 Source: "RaspberryPi5-4jf",
                 sampleReports: 24,
                 intensity: 1.0,
-                itemID: "d551e949-d18f-4e67-ac95-44109d678164"
+                itemID: "d551e949-d18f-4e67-ac95-44109d678164",
+                itempath: "trash.jpg",
             },
             geometry: {
                 type: "Point",
@@ -38,7 +39,8 @@ const hotspots = {
                 Source: "RaspberryPi5-4jf",
                 sampleReports: 16,
                 intensity: 0.7,
-                itemID: "1ec88b05-d3bd-426e-9d45-2ab43dd53107"
+                itemID: "1ec88b05-d3bd-426e-9d45-2ab43dd53107",
+                itempath: "trash.jpg",
             },
             geometry: {
                 type: "Point",
@@ -54,7 +56,8 @@ const hotspots = {
                 Source: "RaspberryPi5-4jf",
                 sampleReports: 9,
                 intensity: 0.5,
-                itemID: "1ec98b05-d3bd-426e-9d45-2ab43dd53107"
+                itemID: "1ec98b05-d3bd-426e-9d45-2ab43dd53107",
+                itempath: "trash.jpg",
             },
             geometry: {
                 type: "Point",
@@ -104,7 +107,7 @@ function populateDatabaseDropdown(databaseList) {
         option.className = "DatabaseOption";
         option.textContent = database.Database_Name;
 
-        option.addEventListener("click", () => {
+        option.addEventListener("click", async () => {
             selectedDatabase = database;
             dropdownLabel.textContent = `${database.Database_Name} ▼`;
 
@@ -116,6 +119,54 @@ function populateDatabaseDropdown(databaseList) {
             setDropdownOpen(false);
 
             console.log("Selected database:", selectedDatabase);
+            // add the implementation to edit hotspots
+            // first fetch the data from the server
+            hotspots  = {
+                        type: "FeatureCollection",
+                        features: []
+                        }
+            data = await fetchDatabasebyID(selectedDatabase);
+            console.log(data)
+            for (const item of data) {
+                const trashID = item.ID;
+                const trashModelConfidence = item.confidence_score;
+                const trashSource = item.source;
+                const trashType = item.type;
+                const trashLatitude = item.latitude;
+                const trashLongitude = item.longitude;
+                const trashimagepath = item.image_path;
+                
+                let feature = `{type: "Feature", properties: { location: "Kenya",wasteType: "${trashType}",modelConfidence: "${trashModelConfidence}",Source: "${trashSource}",intensity: 1.0,itemID: "${trashID}",itempath: "${trashimagepath}"},geometry: {type: "Point",coordinates: [${trashLatitude}, ${trashLongitude}]}`;
+                console.log("Added the feature: ", feature);
+            }
+/*
+                "ID": item_id,
+                "type": trash_type,
+                "date": date,
+                "confidence_score": confidence_score,
+                "image_path": image_path,
+                "latitude": latitude,
+                "longitude": longitude,
+                "source": source
+let hotspots = {
+    type: "FeatureCollection",
+    features: [
+        {
+            type: "Feature",
+            properties: {
+                location: "Nairobi",
+                wasteType: "Plastic",
+                modelConfidence: "12.34",
+                Source: "RaspberryPi5-4jf",
+                sampleReports: 24,
+                intensity: 1.0,
+                itemID: "d551e949-d18f-4e67-ac95-44109d678164"
+            },
+            geometry: {
+                type: "Point",
+                coordinates: [36.8219, -1.2921]
+            } */
+
         });
 
         dropdownMenu.appendChild(option);
@@ -132,6 +183,21 @@ function populateDatabaseDropdown(databaseList) {
         loadButton.disabled = true;
     }
 }
+async function fetchDatabasebyID(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/DB_GetDatabase/${id}?limit1000`, 
+            {method: "GET",
+            headers: {
+                "ngrok-skip-browser-warning": "true"
+            }}
+        );
+        const json_data = response.json().FoundData;
+        return json_data    
+    } catch (error) {
+        console.error("Could not load database by ID:", error);
+    }
+}
+
 
 async function fetchDatabases() {
     loadButton.disabled = true;
@@ -466,16 +532,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                     const properties = feature.properties || {};
                     const content = document.createElement("div");
                     const title = document.createElement("strong");
-                    title.textContent = properties.location || "Waste hotspot";
+                    title.textContent = properties.itemID || "Waste hotspot";
                     content.appendChild(title);
 
                     const wasteType = document.createElement("p");
                     wasteType.textContent = `Waste type: ${properties.wasteType || "Unknown"}`;
                     content.appendChild(wasteType);
-
-                    const reports = document.createElement("p");
-                    reports.textContent = `Sample reports: ${properties.sampleReports ?? "N/A"}`;
-                    content.appendChild(reports);
 
                     const source = document.createElement("p");
                     source.textContent = `Found by Source ${properties.Source ?? "N/A"}`;
@@ -486,9 +548,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                     content.appendChild(source);
 
                     const image = document.createElement("img");
-                    image.src = "trash.jpg";
+                    image.src = properties.itempath;
                     image.alt = "Trash image";
-                    image.style.maxWidth = "500";
+                    image.style.maxWidth = "100%";
+                    image.style.maxHeight = "50%"
                     content.appendChild(image);
 
 
