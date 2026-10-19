@@ -1,8 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Commissioner:wght@100..900&family=Fontdiner+Swanky&family=Henny+Penny&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Schoolbell&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playpen+Sans:wght@100..800&family=Schoolbell&display=swap');
 
+:root {
+  --font-color-white: #fff3d5;
+  --font-color: #
+  --paragraph-font: "Playpen Sans"
+
+}
 body {
   font-family: "Commissioner", cursive;
+  background-color: #4d694e;
 }
 .sidenav {
   height: 100%;
@@ -11,13 +18,16 @@ body {
   z-index: 1;
   top: 0;
   left: 0;
-  background-color: #0e194d;
+  background-color: #0059ff;
   overflow-x: hidden;
   padding-top: 20px;
 }
 
 .title{
-    font-family: "Cinzel Decorative", serif;
+    font-family: "Schoolbell", serif;
+    color: var(--font-color-white);
+    font-size: 40px;
+
 }
 .TopLeftIcon {
     color: aliceblue;
@@ -26,7 +36,7 @@ body {
 }
 
 .TopLeftIcon a {
-    color: inherit;
+    color: var(--font-color-white);
     text-decoration: none;
 }
 
@@ -36,9 +46,9 @@ body {
 }
 
 .PathToResource{
-    color: #2b5835;
+    color: var(--font-color-white);
     font-size: 18px;
-    padding-top: -1px;
+    padding-top: 1px;
 }
 .PathToResource a:visited{
 color: #2b5835;
@@ -68,6 +78,8 @@ color: #2b5835;
 
 .project_description {
   font-size: 20px;
+  color: var(--font-color-white);
+  font-family: var(--paragraph-font-color);
 }
 
 .open-button {
@@ -84,6 +96,11 @@ color: #2b5835;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
+    text-decoration: none;
+}
+.open-button:hover{
+  background-color: #cd2355;
+
 }
 
 

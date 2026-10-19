@@ -116,6 +116,17 @@ async function fetchDatabases() {
 
         dropdownLabel.textContent = "Database loading failed";
         loadButton.disabled = true;
+        if (navigator.onLine) {
+            const webpage_url = window.location.href
+            const test_in_1 = "198.168"
+            const test_in_2 = "localhost"
+            const hasSubstringnumber = webpage_url.includes(test_in_1)
+            const hasSubstringlocalhost = webpage_url.includes(test_in_2)
+            if (hasSubstringnumber || hasSubstringlocalhost) {
+                console.warn("CORS Detected!")
+            }
+        }
+        
     }
 }
 
