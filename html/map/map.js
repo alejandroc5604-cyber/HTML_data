@@ -103,6 +103,9 @@ async function fetchDatabases() {
 
         console.log("Databases received:", data.Databases);
         populateDatabaseDropdown(data.Databases);
+        // adjust the loading button
+        const button = document.getElementById("DatabasesDropdownButton");
+        button.textContent = "Select a database ..."
 
     } catch (error) {
         console.error("Could not load databases:", error);
