@@ -3,8 +3,13 @@
 
 :root {
   --font-color-white: #fff3d5;
-  --font-color: #
-  --paragraph-font: "Playpen Sans"
+  --font-color: #fff3d5;
+  --paragraph-font: "Playpen Sans";
+  --dark-khaki: #3e442bff;
+  --baltic-blue: #33658aff;
+  --midnight-violet: #1d1128ff;
+  --rosewood: #ba274aff;
+  --bright-snow: #f7f7f9ff;
 
 }
 body {
@@ -18,7 +23,7 @@ body {
   z-index: 1;
   top: 0;
   left: 0;
-  background-color: #0059ff;
+  background-color: var(--baltic-blue);
   overflow-x: hidden;
   padding-top: 20px;
 }
@@ -51,8 +56,9 @@ body {
     padding-top: 1px;
 }
 .PathToResource a:visited{
-color: #2b5835;
+color: var(--midnight-violet);
 }
+
 .PathToResource a:hover{
   color: #cd2355;
 }
@@ -62,7 +68,7 @@ color: #2b5835;
   padding: 6px 8px 6px 16px;
   text-decoration: none;
   font-size: 20px;
-  color: #2b5835;
+  color: var(--font-color-white);
   display: block;
 }
 

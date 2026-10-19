@@ -10,6 +10,13 @@ body {
     color: #172033;
     font-family: "Commissioner", Arial, sans-serif;
 }
+:root {
+  --dark-khaki: #3e442bff;
+  --baltic-blue: #33658aff;
+  --midnight-violet: #1d1128ff;
+  --rosewood: #ba274aff;
+  --bright-snow: #f7f7f9ff;
+}
 
 /* Sidebar navigation */
 .sidenav {
