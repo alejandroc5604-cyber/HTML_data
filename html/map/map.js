@@ -107,7 +107,7 @@ function populateDatabaseDropdown(databaseList) {
         option.className = "DatabaseOption";
         option.textContent = database.Database_Name;
 
-        option.addEventListener("click", async () => {
+        option.addEventListener("click", () => {
             selectedDatabase = database;
             dropdownLabel.textContent = `${database.Database_Name} ▼`;
 
@@ -119,54 +119,6 @@ function populateDatabaseDropdown(databaseList) {
             setDropdownOpen(false);
 
             console.log("Selected database:", selectedDatabase);
-            // add the implementation to edit hotspots
-            // first fetch the data from the server
-            hotspots  = {
-                        type: "FeatureCollection",
-                        features: []
-                        }
-            data = await fetchDatabasebyID(selectedDatabase);
-            console.log(data)
-            for (const item of data) {
-                const trashID = item.ID;
-                const trashModelConfidence = item.confidence_score;
-                const trashSource = item.source;
-                const trashType = item.type;
-                const trashLatitude = item.latitude;
-                const trashLongitude = item.longitude;
-                const trashimagepath = item.image_path;
-                
-                let feature = `{type: "Feature", properties: { location: "Kenya",wasteType: "${trashType}",modelConfidence: "${trashModelConfidence}",Source: "${trashSource}",intensity: 1.0,itemID: "${trashID}",itempath: "${trashimagepath}"},geometry: {type: "Point",coordinates: [${trashLatitude}, ${trashLongitude}]}`;
-                console.log("Added the feature: ", feature);
-            }
-/*
-                "ID": item_id,
-                "type": trash_type,
-                "date": date,
-                "confidence_score": confidence_score,
-                "image_path": image_path,
-                "latitude": latitude,
-                "longitude": longitude,
-                "source": source
-let hotspots = {
-    type: "FeatureCollection",
-    features: [
-        {
-            type: "Feature",
-            properties: {
-                location: "Nairobi",
-                wasteType: "Plastic",
-                modelConfidence: "12.34",
-                Source: "RaspberryPi5-4jf",
-                sampleReports: 24,
-                intensity: 1.0,
-                itemID: "d551e949-d18f-4e67-ac95-44109d678164"
-            },
-            geometry: {
-                type: "Point",
-                coordinates: [36.8219, -1.2921]
-            } */
-
         });
 
         dropdownMenu.appendChild(option);
@@ -183,19 +135,74 @@ let hotspots = {
         loadButton.disabled = true;
     }
 }
-async function fetchDatabasebyID(id) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/DB_GetDatabase/${id}?limit1000`, 
-            {method: "GET",
+async function fetchDatabaseById(databaseId) {
+    const response = await fetch(
+        `${API_BASE_URL}/DB_GetDatabase/${encodeURIComponent(databaseId)}?limit=1000`,
+        {
+            method: "GET",
             headers: {
                 "ngrok-skip-browser-warning": "true"
-            }}
-        );
-        const json_data = response.json().FoundData;
-        return json_data    
-    } catch (error) {
-        console.error("Could not load database by ID:", error);
+            }
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText}`);
     }
+
+    const data = await response.json();
+    if (!Array.isArray(data.FoundData)) {
+        throw new Error("The API response does not contain a FoundData array.");
+    }
+
+    return data.FoundData;
+}
+
+function makeHotspotFeature(item) {
+    if (!item || typeof item !== "object") {
+        console.warn("Skipping invalid database item:", item);
+        return null;
+    }
+
+    const latitude = Number(item.latitude);
+    const longitude = Number(item.longitude);
+
+    if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude) ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180
+    ) {
+        console.warn("Skipping database item with invalid coordinates:", item);
+        return null;
+    }
+
+    const confidence = Number(item.confidence_score);
+    const confidenceWeight = Number.isFinite(confidence)
+        ? Math.max(
+            0,
+            Math.min(1, confidence > 1 ? confidence / 100 : confidence)
+        )
+        : 1;
+
+    return {
+        type: "Feature",
+        properties: {
+            location: "Kenya",
+            wasteType: item.type ?? "Unknown",
+            modelConfidence: item.confidence_score ?? "N/A",
+            Source: item.source ?? "N/A",
+            intensity: confidenceWeight,
+            itemID: item.ID ?? "Unknown",
+            itempath: item.image_path ?? ""
+        },
+        geometry: {
+            type: "Point",
+            coordinates: [longitude, latitude]
+        }
+    };
 }
 
 
@@ -223,9 +230,6 @@ async function fetchDatabases() {
 
         console.log("Databases received:", data.Databases);
         populateDatabaseDropdown(data.Databases);
-        // adjust the loading button
-        const button = document.getElementById("DatabasesDropdownButton");
-        button.textContent = "Select a database ..."
 
     } catch (error) {
         console.error("Could not load databases:", error);
@@ -276,16 +280,33 @@ loadButton.addEventListener("click", async () => {
     }
 
     loadButton.disabled = true;
+    const originalButtonText = loadButton.textContent;
+    loadButton.textContent = "Loading...";
 
     try {
-        console.log("Selected database:", {
-            name: selectedDatabase.Database_Name,
-            filename: selectedDatabase.Database_filename
-        });
+        const items = await fetchDatabaseById(
+            selectedDatabase.Database_filename
+        );
+        const nextHotspots = {
+            type: "FeatureCollection",
+            features: items
+                .map(makeHotspotFeature)
+                .filter(feature => feature !== null)
+        };
 
+        hotspots = nextHotspots;
+        const hotspotSource = map && map.getSource("hotspots");
+        if (hotspotSource) {
+            hotspotSource.setData(hotspots);
+        }
+
+        console.log(
+            `Loaded ${hotspots.features.length} hotspot(s) from ${selectedDatabase.Database_Name}.`
+        );
     } catch (error) {
         console.error("Could not load selected database:", error);
     } finally {
+        loadButton.textContent = originalButtonText;
         loadButton.disabled = !selectedDatabase;
     }
 });
@@ -545,14 +566,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     const confidence_score = document.createElement("p");
                     confidence_score.textContent = `Source model had a confidence of ${properties.modelConfidence ?? "N/A"}`;
-                    content.appendChild(source);
+                    content.appendChild(confidence_score);
 
-                    const image = document.createElement("img");
-                    image.src = properties.itempath;
-                    image.alt = "Trash image";
-                    image.style.maxWidth = "100%";
-                    image.style.maxHeight = "50%"
-                    content.appendChild(image);
+                    if (properties.itempath) {
+                        const image = document.createElement("img");
+                        image.src = properties.itempath;
+                        image.alt = "Trash image";
+                        image.style.maxWidth = "100%";
+                        image.style.maxHeight = "160px";
+                        content.appendChild(image);
+                    }
 
 
                     hotspotPopup
